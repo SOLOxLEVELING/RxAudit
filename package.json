@@ -12,7 +12,7 @@
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.750.0",
     "lucide-react": "^0.468.0",
-    "next": "15.3.3",
+    "next": "^15.5.25",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "zod": "^3.24.2"
