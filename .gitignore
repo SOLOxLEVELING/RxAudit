@@ -1,11 +1,44 @@
-# Plan folders and plan markdown files
+# Plan folders and documentation
 [Pp]lan/
 plan/
 Plan/
 
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Next.js build outputs
+/.next/
+/out/
+/build
+/dist
+
+# Environment variables (keep .env.example tracked)
 .env
 .env*.local
 .env.production
 
-# OS metadata
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Caches & Testing
+.eslintcache
+*.tsbuildinfo
+next-env.d.ts
+coverage/
+.turbo/
+.cache/
+
+# OS & Editor files
 .DS_Store
+Thumbs.db
+*.pem
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
