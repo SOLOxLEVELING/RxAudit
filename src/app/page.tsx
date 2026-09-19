@@ -195,7 +195,7 @@ export default function Home() {
             <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-zinc-800/60 text-[11px] text-zinc-400">
               <div>
                 <span className="font-semibold text-zinc-300 block">1. Vision Extraction</span>
-                Amazon Bedrock Nova Pro extracts raw printed lines, quantities, and prices without estimating correctness.
+                Amazon Bedrock Claude Haiku 4.5 extracts raw printed lines, quantities, and prices without estimating correctness.
               </div>
               <div>
                 <span className="font-semibold text-zinc-300 block">2. Deterministic Match & Audit</span>

@@ -133,11 +133,10 @@ export default function BillUpload({
               <button
                 key={sample.name}
                 onClick={() => handleSelectSample(sample)}
-                className={`text-left p-2.5 rounded border transition-colors cursor-pointer text-xs ${
-                  isSelected
+                className={`text-left p-2.5 rounded border transition-colors cursor-pointer text-xs ${isSelected
                     ? "bg-zinc-800/90 border-emerald-500 text-zinc-100"
                     : "bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900"
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="font-medium truncate">{sample.name.replace("Sample: ", "")}</div>
@@ -161,11 +160,10 @@ export default function BillUpload({
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => !isExtracting && fileInputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer ${
-          dragOver
+        className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer ${dragOver
             ? "border-emerald-500 bg-zinc-900/80"
             : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-900/70"
-        } ${isExtracting ? "pointer-events-none opacity-80" : ""}`}
+          } ${isExtracting ? "pointer-events-none opacity-80" : ""}`}
       >
         <input
           ref={fileInputRef}
@@ -182,7 +180,7 @@ export default function BillUpload({
               Extracting with AI vision...
             </div>
             <div className="text-[11px] text-zinc-400">
-              Bedrock Nova Pro is reading printed line items & prices
+              Amazon Bedrock Claude Haiku 4.5 is reading printed line items & prices
             </div>
           </div>
         ) : (

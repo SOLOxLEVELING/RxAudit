@@ -14,7 +14,7 @@ const client = new BedrockRuntimeClient({
   region: process.env.AWS_REGION || "ap-southeast-2",
 });
 
-const modelId = process.env.BEDROCK_MODEL_ID || "amazon.nova-pro-v1:0";
+const modelId = process.env.BEDROCK_MODEL_ID || "anthropic.claude-haiku-4-5-20251001-v1:0";
 
 const DOCUMENT_FORMATS: Record<string, DocumentFormat> = {
   "application/pdf": "pdf",
@@ -28,28 +28,34 @@ const IMAGE_FORMATS: Record<string, ImageFormat> = {
 
 const SYSTEM_PROMPT = `You are a pharmacy bill extraction engine for Indian medical stores.
 
-Extract line items from this pharmacy bill image. Return ONLY valid JSON matching this schema:
+Your task: extract each line item from the table in this pharmacy bill image.
+
+STEP-BY-STEP PROCESS — follow this exactly:
+1. First, identify the table columns. Indian pharmacy bills typically have: Sr | HSN | Description | Company | Batch No. | Expiry | Qty | M.R.P. | Amount
+2. The LAST numeric column is always "Amount" (total charged for that row). The second-to-last is "M.R.P." (per-strip price). The column before that is "Qty" (number of tablets).
+3. For EACH row, use the serial number (Sr) as your anchor. Read Sr, then read across that SAME horizontal line to get Description, Qty, and Amount. Do NOT let your eyes drift to an adjacent row.
+4. After reading each row, verify: does Amount ÷ Qty give a reasonable per-tablet price (usually ₹0.50 to ₹50)? If not, you likely read from the wrong row — re-read.
+
+Return ONLY valid JSON matching this schema:
 {
   "pharmacyName": "string",
-  "billNumber": "string or null if not visible",
-  "date": "YYYY-MM-DD or null if not visible",
+  "billNumber": "string or null",
+  "date": "YYYY-MM-DD or null (note: Indian dates are DD-MM-YYYY, convert to YYYY-MM-DD)",
   "lineItems": [
     {
-      "drugName": "string (exactly as printed — brand name, strength, and form)",
-      "quantity": number,
-      "unitPrice": number (per single unit — tablet, capsule, strip),
-      "lineTotal": number
+      "drugName": "string (exactly as printed on bill)",
+      "quantity": number (from Qty column — total tablets/capsules),
+      "unitPrice": number (compute as Amount ÷ Qty — the per-tablet cost),
+      "lineTotal": number (from Amount column — total charged for this line)
     }
   ]
 }
 
-Rules for Indian pharmacy bills:
-- "MRP" means Maximum Retail Price — use this as unitPrice if no separate unit price column exists.
-- If the bill shows a "strip" or "pack" price and a quantity of strips, calculate: unitPrice = strip price, quantity = number of strips.
-- Drug names are often abbreviated: "TELMI 40" = Telmisartan 40mg, "AMLO 5" = Amlodipine 5mg. Extract EXACTLY what is printed — do not expand abbreviations.
-- If lineTotal and quantity are present but unitPrice is missing, compute unitPrice = lineTotal / quantity.
-- If columns are ambiguous, prefer: Qty | Drug Name | Batch | MRP | Amount.
-- Return ONLY the raw JSON. No markdown, no explanation.`;
+Rules:
+- unitPrice = Amount ÷ Qty. Do NOT use M.R.P. as unitPrice — M.R.P. on Indian bills is per-strip, not per-tablet.
+- Drug names: extract EXACTLY as printed. Do not expand abbreviations.
+- Date format on Indian bills is DD-MM-YYYY. Convert to YYYY-MM-DD in your output.
+- Return ONLY raw JSON. No markdown, no explanation.`;
 
 export async function POST(request: Request) {
   try {
@@ -110,7 +116,7 @@ export async function POST(request: Request) {
         },
       ],
       inferenceConfig: {
-        maxTokens: 2048,
+        maxTokens: 4096,
         temperature: 0.1,
       },
     });
