@@ -15,36 +15,23 @@ export default function AnnualImpact({ totalOvercharge }: AnnualImpactProps) {
   }
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-zinc-100">
+    <div className="bg-zinc-900 border border-zinc-700/60 rounded-lg p-3 text-zinc-100">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-red-400" />
-          <span className="text-xs font-semibold tracking-wider uppercase text-zinc-300">
-            Compounded Refill Cost
-          </span>
-        </div>
-        <span className="text-[11px] px-2 py-0.5 rounded bg-red-950/60 text-red-300 border border-red-900/60">
-          Annual Drain
+        <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold">
+          Compounded Refill Cost
+        </span>
+        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-950/50 text-amber-400 border border-amber-900/40 font-mono">
+          Annual Projection
         </span>
       </div>
 
-      <div className="mt-3 flex items-baseline justify-between gap-2">
-        <div>
-          <div className="text-2xl font-mono font-bold text-red-400">
-            {formatINR(annualOvercharge)}
-            <span className="text-xs font-normal text-zinc-400 ml-1">/year</span>
-          </div>
-          <div className="text-xs text-zinc-400 mt-1">
-            Estimated annual impact (assuming monthly refills)
-          </div>
-        </div>
+      <div className="text-lg font-mono font-semibold text-zinc-100 mt-1">
+        {formatINR(annualOvercharge)}
+        <span className="text-xs font-normal text-zinc-400 ml-1 font-sans">/year</span>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-zinc-800/80 text-xs text-zinc-400 flex items-start gap-1.5 leading-relaxed">
-        <AlertCircle className="w-3.5 h-3.5 text-zinc-400 shrink-0 mt-0.5" />
-        <span>
-          A single bill overcharge of <span className="font-mono text-zinc-200">{formatINR(totalOvercharge)}</span> quietly multiplies across 12 monthly refills for chronic hypertension or diabetes care.
-        </span>
+      <div className="text-[11px] text-zinc-400 mt-0.5 leading-snug">
+        Estimated annual impact (assuming monthly refills)
       </div>
     </div>
   );

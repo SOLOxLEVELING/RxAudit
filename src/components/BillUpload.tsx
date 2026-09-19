@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useRef, DragEvent, ChangeEvent } from "react";
-import { Upload, FileText, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  AlertCircle,
+  Loader2,
+  CheckCircle2,
+} from "lucide-react";
 import { sampleBills } from "@/data/sample-bills";
 import type { ExtractedBill } from "@/data/schemas";
 
@@ -50,7 +56,9 @@ export default function BillUpload({
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      setErrorMessage("File exceeds 10MB limit. Please upload a smaller image.");
+      setErrorMessage(
+        "File exceeds 10MB limit. Please upload a smaller image."
+      );
       return;
     }
 
@@ -81,10 +89,35 @@ export default function BillUpload({
         }),
       });
 
-      const data = await res.json();
+      const contentType = res.headers.get("content-type") || "";
+      let data: {
+        success?: boolean;
+        bill?: ExtractedBill;
+        error?: string;
+      } | null = null;
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Failed to extract text from bill image.");
+      if (contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        if (res.status === 413) {
+          throw new Error(
+            "File size exceeds server upload limit. Please upload a smaller image."
+          );
+        }
+        if (res.status === 404) {
+          throw new Error(
+            "API endpoint not reachable. Please verify the dev server is active on port 3000."
+          );
+        }
+        throw new Error(
+          `Server returned an unexpected response (${res.status}). Please verify the dev server is running on port 3000.`
+        );
+      }
+
+      if (!res.ok || !data?.success || !data?.bill) {
+        throw new Error(
+          data?.error || "Failed to extract text from bill image."
+        );
       }
 
       onBillLoaded(data.bill, false);
@@ -118,40 +151,37 @@ export default function BillUpload({
 
   return (
     <div className="space-y-3">
-      {/* Sample Bill Selector */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-            Instant Demo Fixtures
-          </span>
-          <span className="text-[10px] text-zinc-400">Deterministic · No AWS needed</span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          {sampleBills.map((sample) => {
-            const isSelected = activeSampleName === sample.name;
-            return (
-              <button
-                key={sample.name}
-                onClick={() => handleSelectSample(sample)}
-                className={`text-left p-2.5 rounded border transition-colors cursor-pointer text-xs ${isSelected
-                    ? "bg-zinc-800/90 border-emerald-500 text-zinc-100"
-                    : "bg-zinc-950/80 border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-900"
-                  }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="font-medium truncate">{sample.name.replace("Sample: ", "")}</div>
-                  {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 ml-1" />}
-                </div>
-                <div className="text-[11px] text-zinc-400 mt-1 font-mono">
-                  {sample.bill.lineItems.length} items · {sample.bill.pharmacyName.split(" - ")[0]}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+      {/* Sample Bill Selector — lightweight row above dropzone, no card */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mr-1 shrink-0">
+          Try a sample:
+        </span>
+        {sampleBills.map((sample) => {
+          const isSelected = activeSampleName === sample.name;
+          const shortName = sample.name.replace("Sample: ", "");
+          return (
+            <button
+              key={sample.name}
+              type="button"
+              onClick={() => handleSelectSample(sample)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer ${
+                isSelected
+                  ? "bg-emerald-950/80 border-emerald-500 text-emerald-300 shadow-sm"
+                  : "bg-zinc-900 border-zinc-700/60 text-zinc-300 hover:border-zinc-600 hover:text-zinc-100"
+              }`}
+            >
+              {isSelected ? (
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              ) : (
+                <FileText className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+              )}
+              {shortName}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Upload Dropzone */}
+      {/* Upload Dropzone — tall, prominent, inviting */}
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -160,10 +190,11 @@ export default function BillUpload({
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => !isExtracting && fileInputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer ${dragOver
-            ? "border-emerald-500 bg-zinc-900/80"
-            : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-900/70"
-          } ${isExtracting ? "pointer-events-none opacity-80" : ""}`}
+        className={`relative border-2 border-dashed rounded-xl text-center transition-all cursor-pointer ${
+          dragOver
+            ? "border-emerald-500 bg-emerald-950/10"
+            : "border-zinc-700/60 bg-zinc-900/40 hover:border-zinc-600 hover:bg-zinc-900/60"
+        } ${isExtracting ? "pointer-events-none opacity-80" : ""}`}
       >
         <input
           ref={fileInputRef}
@@ -174,26 +205,28 @@ export default function BillUpload({
         />
 
         {isExtracting ? (
-          <div className="py-3 flex flex-col items-center justify-center gap-2">
-            <Loader2 className="w-6 h-6 text-emerald-400 animate-spin" />
-            <div className="text-xs font-semibold text-zinc-200">
-              Extracting with AI vision...
+          /* Loading state */
+          <div className="py-16 flex flex-col items-center justify-center gap-3">
+            <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+            <div className="font-semibold text-zinc-200 text-sm">
+              Reading your bill...
             </div>
-            <div className="text-[11px] text-zinc-400">
-              Amazon Bedrock Claude Haiku 4.5 is reading printed line items & prices
+            <div className="text-xs text-zinc-500">
+              AI vision is extracting line items and prices
             </div>
           </div>
         ) : (
-          <div className="py-2 flex flex-col items-center justify-center gap-2">
-            <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 text-zinc-300">
-              <Upload className="w-4 h-4" />
+          /* Default state */
+          <div className="py-16 flex flex-col items-center justify-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-emerald-400/60">
+              <Upload className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-xs font-semibold text-zinc-200">
-                Upload pharmacy bill photo or PDF
+              <div className="font-semibold text-zinc-100 text-sm sm:text-base">
+                Upload your pharmacy bill
               </div>
-              <div className="text-[11px] text-zinc-400 mt-0.5">
-                Drag and drop here, or click to browse (PNG, JPEG, WebP, PDF up to 10MB)
+              <div className="text-xs text-zinc-500 mt-1">
+                PNG, JPEG, WebP or PDF · up to 10 MB · drag &amp; drop or click
               </div>
             </div>
           </div>
@@ -202,7 +235,7 @@ export default function BillUpload({
 
       {/* Error Banner */}
       {errorMessage && (
-        <div className="bg-red-950/40 border border-red-900/60 rounded-lg p-3 text-xs text-red-300 flex items-start gap-2 animate-in fade-in">
+        <div className="bg-red-950/40 border border-red-900/60 rounded-xl p-3 text-xs text-red-300 flex items-start gap-2">
           <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
           <div className="flex-1 leading-relaxed">
             <span className="font-semibold text-red-200">Extraction Note: </span>

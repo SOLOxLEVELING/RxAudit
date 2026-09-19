@@ -11,9 +11,9 @@
   --accent-amber: #f59e0b;
 }
 
-* {
-  margin: 0;
-  padding: 0;
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
