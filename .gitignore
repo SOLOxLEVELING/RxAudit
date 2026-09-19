@@ -1,0 +1,11 @@
+# Plan folders and plan markdown files
+[Pp]lan/
+plan/
+Plan/
+
+.env
+.env*.local
+.env.production
+
+# OS metadata
+.DS_Store
